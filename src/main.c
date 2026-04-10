@@ -38,6 +38,36 @@ asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* poin
     return new_asteroid;
 }
 
+void move_asteroid(asteroid *asteroid) {
+    asteroid->coord_x += asteroid->vel_x;
+    asteroid->coord_y += asteroid->vel_y;
+}
+
+void move_asteroid_array(asteroid_array *array) {
+    for (int i = 0; i < array->asteroid_num; i++) {
+        move_asteroid(&array->asteroids[i]);
+    }
+}
+
+void wrap_asteroid(asteroid *asteroid) {
+    if (asteroid->coord_x < 0){
+        asteroid->coord_x += WINDOW_WIDTH;
+    } else if (asteroid->coord_x > WINDOW_WIDTH) {
+        asteroid->coord_x -= WINDOW_WIDTH;
+    }
+    if (asteroid->coord_y < 0){
+        asteroid->coord_y += WINDOW_HEIGHT;
+    } else if (asteroid->coord_y > WINDOW_HEIGHT) {
+        asteroid->coord_y -= WINDOW_HEIGHT;
+    }
+}
+
+void wrap_asteroid_array(asteroid_array *array) {
+    for (int i = 0; i < array->asteroid_num; i++) {
+        wrap_asteroid(&array->asteroids[i]);
+    }
+}
+
 void display_asteroid(SDL_Renderer *renderer, asteroid *asteroid) {
     for (int i = 0; i < asteroid->point_num/2; i++) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // blanc
@@ -115,7 +145,7 @@ int main(void)
     input_state input = {false, false, false, false};
     asteroid_array asteroids;
     asteroids.asteroid_num = 0;
-    asteroids.asteroids[0] = create_asteroid(WINDOW_WIDTH/2, WINDOW_HEIGHT/2-50, 0.0, 0.0, asteroid1, 10);
+    asteroids.asteroids[0] = create_asteroid(WINDOW_WIDTH/2, 0, 0.1, 0.7, asteroid1, 10);
     asteroids.asteroid_num = 1;
     spaceship* ship = create_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, -20.0, 25.0, 20.0, 25.0);
 
@@ -157,12 +187,15 @@ int main(void)
             }
         }
 
+        // --- Update ---
         move_spaceship(ship, input.key_left, input.key_right, input.key_up, input.key_down);
+        move_asteroid_array(&asteroids);
+        wrap_asteroid_array(&asteroids);
 
         // --- Rendu ---
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // noir
         SDL_RenderClear(renderer);
-        display_asteroid(renderer, &asteroids.asteroids[0]);
+        display_asteroid_array(renderer, &asteroids);
         display_spaceship(renderer, ship);
         SDL_RenderPresent(renderer);
     }
