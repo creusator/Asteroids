@@ -7,10 +7,52 @@
 #define WINDOW_WIDTH 600
 #define WINDOW_HEIGHT 1000
 
-bool key_left = false;
-bool key_right = false;
-bool key_up = false;
-bool key_down = false;
+float asteroid1[10] = {0.0,20.0,20.0,10.0,10.0,-10.0,-10.0,-10.0,-20.0,10.0};
+
+typedef struct {
+    bool key_left, key_right, key_up, key_down;
+} input_state;
+
+typedef struct {
+    float coord_x, coord_y;
+    float vel_x, vel_y;
+    float points[20];
+    int point_num; //taille effective
+} asteroid;
+
+typedef struct{
+    asteroid asteroids[100];
+    int asteroid_num; //taille effective
+} asteroid_array;
+
+asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, int point_num) {
+    asteroid new_asteroid;
+    new_asteroid.coord_x = x;
+    new_asteroid.coord_y = y;
+    new_asteroid.vel_x = vel_x;
+    new_asteroid.vel_y = vel_y;
+    new_asteroid.point_num = point_num;
+    for (int i = 0; i < point_num; i++) {
+        new_asteroid.points[i] = points[i];
+    }
+    return new_asteroid;
+}
+
+void display_asteroid(SDL_Renderer *renderer, asteroid *asteroid) {
+    for (int i = 0; i < asteroid->point_num/2; i++) {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // blanc
+        SDL_RenderLine(renderer, asteroid->coord_x + asteroid->points[(2*i) % (asteroid->point_num)], //x1
+                                 asteroid->coord_y + asteroid->points[(2*i+1) % (asteroid->point_num)], //y1
+                                 asteroid->coord_x + asteroid->points[(2*i+2) % (asteroid->point_num)], //x2
+                                 asteroid->coord_y + asteroid->points[(2*i+3) % (asteroid->point_num)]); //y2
+    }
+}
+
+void display_asteroid_array(SDL_Renderer *renderer, asteroid_array *array) {
+    for (int i = 0; i < array->asteroid_num; i++) {
+        display_asteroid(renderer, &array->asteroids[i]);
+    }
+}
 
 typedef struct {
     float coord_x, coord_y;
@@ -65,12 +107,16 @@ int main(void)
 
     SDL_Window   *window   = SDL_CreateWindow(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
     SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
-    SDL_SetRenderVSync(renderer, 1); // VSync activé (obligatoire en SDL3, pas automatique)
+    SDL_SetRenderVSync(renderer, 1);
 
     bool running = true;
     SDL_Event event;
 
-
+    input_state input = {false, false, false, false};
+    asteroid_array asteroids;
+    asteroids.asteroid_num = 0;
+    asteroids.asteroids[0] = create_asteroid(WINDOW_WIDTH/2, WINDOW_HEIGHT/2-50, 0.0, 0.0, asteroid1, 10);
+    asteroids.asteroid_num = 1;
     spaceship* ship = create_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, -20.0, 25.0, 20.0, 25.0);
 
     while (running) {
@@ -83,39 +129,40 @@ int main(void)
                 if (event.key.key == SDLK_ESCAPE)
                     running = false;
                 if (event.key.key == SDLK_Q){
-                    key_left = true;
+                    input.key_left = true;
                 }
                 if (event.key.key == SDLK_D){
-                    key_right = true;
+                    input.key_right = true;
                 }
                 if (event.key.key == SDLK_Z){
-                    key_up = true;
+                    input.key_up = true;
                 }
                 if (event.key.key == SDLK_S){
-                    key_down = true;
+                    input.key_down = true;
                 }
             }
             if (event.type == SDL_EVENT_KEY_UP) {
                 if (event.key.key == SDLK_Q){
-                    key_left = false;
+                    input.key_left = false;
                 }
                 if (event.key.key == SDLK_D){
-                    key_right = false;
+                    input.key_right = false;
                 }
                 if (event.key.key == SDLK_Z){
-                    key_up = false;
+                    input.key_up = false;
                 }
                 if (event.key.key == SDLK_S){
-                    key_down = false;
+                    input.key_down = false;
                 }
             }
         }
 
-        move_spaceship(ship, key_left, key_right, key_up, key_down);
+        move_spaceship(ship, input.key_left, input.key_right, input.key_up, input.key_down);
 
         // --- Rendu ---
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // noir
         SDL_RenderClear(renderer);
+        display_asteroid(renderer, &asteroids.asteroids[0]);
         display_spaceship(renderer, ship);
         SDL_RenderPresent(renderer);
     }
