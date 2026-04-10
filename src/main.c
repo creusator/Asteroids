@@ -1,11 +1,16 @@
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_keycode.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h>
 
-#define WINDOW_TITLE  "Asteroids"
-#define WINDOW_WIDTH  800
-#define WINDOW_HEIGHT 600
+#define WINDOW_TITLE "Asteroids"
+#define WINDOW_WIDTH 600
+#define WINDOW_HEIGHT 1000
+
+bool key_left = false;
+bool key_right = false;
+bool key_up = false;
+bool key_down = false;
 
 typedef struct {
     float coord_x, coord_y;
@@ -21,12 +26,27 @@ spaceship* create_spaceship(float x, float y, float o1x, float o1y, float o2x, f
     new_ship->offset[1] = o1y;
     new_ship->offset[2] = o2x;
     new_ship->offset[3] = o2y;
-    new_ship->speed = 10;
+    new_ship->speed = 1;
     return new_ship;
 }
 
 void free_spaceship(spaceship *ship) {
     free(ship);
+}
+
+void move_spaceship(spaceship *ship, bool key_left, bool key_right, bool key_up, bool key_down) {
+    if (key_left) {
+        ship->coord_x -= ship->speed;
+    }
+    if (key_right) {
+        ship->coord_x += ship->speed;
+    }
+    if (key_up) {
+        ship->coord_y -= ship->speed;
+    }
+    if (key_down) {
+        ship->coord_y += ship->speed;
+    }
 }
 
 void display_spaceship(SDL_Renderer *renderer, spaceship *ship) {
@@ -50,6 +70,7 @@ int main(void)
     bool running = true;
     SDL_Event event;
 
+
     spaceship* ship = create_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, -20.0, 25.0, 20.0, 25.0);
 
     while (running) {
@@ -62,19 +83,35 @@ int main(void)
                 if (event.key.key == SDLK_ESCAPE)
                     running = false;
                 if (event.key.key == SDLK_Q){
-                    ship->coord_x -= ship->speed;
+                    key_left = true;
                 }
                 if (event.key.key == SDLK_D){
-                    ship->coord_x += ship->speed;
+                    key_right = true;
                 }
                 if (event.key.key == SDLK_Z){
-                    ship->coord_y -= ship->speed;
+                    key_up = true;
                 }
                 if (event.key.key == SDLK_S){
-                    ship->coord_y += ship->speed;
+                    key_down = true;
+                }
+            }
+            if (event.type == SDL_EVENT_KEY_UP) {
+                if (event.key.key == SDLK_Q){
+                    key_left = false;
+                }
+                if (event.key.key == SDLK_D){
+                    key_right = false;
+                }
+                if (event.key.key == SDLK_Z){
+                    key_up = false;
+                }
+                if (event.key.key == SDLK_S){
+                    key_down = false;
                 }
             }
         }
+
+        move_spaceship(ship, key_left, key_right, key_up, key_down);
 
         // --- Rendu ---
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // noir
