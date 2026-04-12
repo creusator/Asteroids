@@ -1,0 +1,18 @@
+#include "../include/collision.h"
+#include "../include/asteroid.h"
+#include "../include/spaceship.h"
+
+void collide_asteroid(bool *running, asteroid *asteroid, spaceship *spaceship) {
+    float dx = asteroid->coord_x - spaceship->coord_x;
+    float dy = asteroid->coord_y - spaceship->coord_y;
+    float r = asteroid->width + spaceship->width;
+    if (dx*dx + dy*dy < r * r) {
+        *running = false;
+    }
+}
+
+void collide_asteroid_array(bool *running, asteroid_array *array, spaceship *spaceship) {
+    for (int i = 0; i < array->asteroid_num; i++) {
+        collide_asteroid(running, &array->asteroids[i], spaceship);
+    }
+}
