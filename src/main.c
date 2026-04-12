@@ -8,6 +8,7 @@
 #define WINDOW_HEIGHT 1000
 
 float asteroid1[10] = {0.0,20.0,20.0,10.0,10.0,-10.0,-10.0,-10.0,-20.0,10.0};
+float spaceship1[6] = {0.0, -20.0, 20.0, 10.0, -20.0, 10.0};
 
 typedef struct {
     bool key_left, key_right, key_up, key_down;
@@ -18,6 +19,7 @@ typedef struct {
     float vel_x, vel_y;
     float points[20];
     int point_num; //taille effective
+    int width; //taille collision
 } asteroid;
 
 typedef struct{
@@ -25,13 +27,21 @@ typedef struct{
     int asteroid_num; //taille effective
 } asteroid_array;
 
-asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, int point_num) {
+typedef struct {
+    float coord_x, coord_y;
+    float points[10];
+    int point_num;
+    int speed;
+} spaceship;
+
+asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, int point_num, int width) {
     asteroid new_asteroid;
     new_asteroid.coord_x = x;
     new_asteroid.coord_y = y;
     new_asteroid.vel_x = vel_x;
     new_asteroid.vel_y = vel_y;
     new_asteroid.point_num = point_num;
+    new_asteroid.width = width;
     for (int i = 0; i < point_num; i++) {
         new_asteroid.points[i] = points[i];
     }
@@ -68,36 +78,44 @@ void wrap_asteroid_array(asteroid_array *array) {
     }
 }
 
-void display_asteroid(SDL_Renderer *renderer, asteroid *asteroid) {
-    for (int i = 0; i < asteroid->point_num/2; i++) {
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // blanc
-        SDL_RenderLine(renderer, asteroid->coord_x + asteroid->points[(2*i) % (asteroid->point_num)], //x1
-                                 asteroid->coord_y + asteroid->points[(2*i+1) % (asteroid->point_num)], //y1
-                                 asteroid->coord_x + asteroid->points[(2*i+2) % (asteroid->point_num)], //x2
-                                 asteroid->coord_y + asteroid->points[(2*i+3) % (asteroid->point_num)]); //y2
+void collide_asteroid(bool *running, asteroid *asteroid, spaceship *spaceship) {
+    float dx = asteroid->coord_x - spaceship->coord_x;
+    float dy = asteroid->coord_y - spaceship->coord_y;
+    if (dx*dx + dy*dy < asteroid->width * asteroid->width) {
+        *running = false;
+    }
+}
+
+void collide_asteroid_array(bool *running, asteroid_array *array, spaceship *spaceship) {
+    for (int i = 0; i < array->asteroid_num; i++) {
+        collide_asteroid(running, &array->asteroids[i], spaceship);
+    }
+}
+
+void display_polygon(SDL_Renderer *renderer, float coord_x, float coord_y, float* points, int point_num) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // blanc
+    for (int i = 0; i < point_num/2; i++) {
+        SDL_RenderLine(renderer, coord_x + points[(i*2) % (point_num)], //x1
+                                 coord_y + points[(i*2+1) % (point_num)], //y1
+                                 coord_x + points[(i*2+2) % (point_num)], //x2
+                                 coord_y + points[(i*2+3) % (point_num)]); //y2
     }
 }
 
 void display_asteroid_array(SDL_Renderer *renderer, asteroid_array *array) {
     for (int i = 0; i < array->asteroid_num; i++) {
-        display_asteroid(renderer, &array->asteroids[i]);
+        display_polygon(renderer, array->asteroids[i].coord_x, array->asteroids[i].coord_y, array->asteroids[i].points, array->asteroids[i].point_num);
     }
 }
 
-typedef struct {
-    float coord_x, coord_y;
-    float offset[4];
-    int speed;
-} spaceship;
-
-spaceship* create_spaceship(float x, float y, float o1x, float o1y, float o2x, float o2y) {
+spaceship* create_spaceship(float x, float y, float* points, int point_num) {
     spaceship *new_ship = malloc(sizeof(spaceship));
     new_ship->coord_x = x;
     new_ship->coord_y = y;
-    new_ship->offset[0] = o1x;
-    new_ship->offset[1] = o1y;
-    new_ship->offset[2] = o2x;
-    new_ship->offset[3] = o2y;
+    for (int i = 0; i < point_num; i++) {
+        new_ship->points[i] = points[i];
+    }
+    new_ship->point_num = point_num;
     new_ship->speed = 1;
     return new_ship;
 }
@@ -121,13 +139,6 @@ void move_spaceship(spaceship *ship, bool key_left, bool key_right, bool key_up,
     }
 }
 
-void display_spaceship(SDL_Renderer *renderer, spaceship *ship) {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // blanc
-    SDL_RenderLine(renderer, ship->coord_x, ship->coord_y, ship->coord_x+ship->offset[0], ship->coord_y+ship->offset[1]);
-    SDL_RenderLine(renderer, ship->coord_x+ship->offset[0], ship->coord_y+ship->offset[1], ship->coord_x+ship->offset[2], ship->coord_y+ship->offset[3]);
-    SDL_RenderLine(renderer, ship->coord_x+ship->offset[2], ship->coord_y+ship->offset[3], ship->coord_x, ship->coord_y);
-}
-
 int main(void)
 {
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
@@ -145,9 +156,9 @@ int main(void)
     input_state input = {false, false, false, false};
     asteroid_array asteroids;
     asteroids.asteroid_num = 0;
-    asteroids.asteroids[0] = create_asteroid(WINDOW_WIDTH/2, 0, 0.1, 0.7, asteroid1, 10);
+    asteroids.asteroids[0] = create_asteroid(WINDOW_WIDTH/2, 0, 0.1, 0.7, asteroid1, 10, 30);
     asteroids.asteroid_num = 1;
-    spaceship* ship = create_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, -20.0, 25.0, 20.0, 25.0);
+    spaceship* ship = create_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, spaceship1, 6);
 
     while (running) {
         // --- Events ---
@@ -191,12 +202,13 @@ int main(void)
         move_spaceship(ship, input.key_left, input.key_right, input.key_up, input.key_down);
         move_asteroid_array(&asteroids);
         wrap_asteroid_array(&asteroids);
+        collide_asteroid_array(&running, &asteroids, ship);
 
         // --- Rendu ---
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // noir
         SDL_RenderClear(renderer);
         display_asteroid_array(renderer, &asteroids);
-        display_spaceship(renderer, ship);
+        display_polygon(renderer, ship->coord_x, ship->coord_y, ship->points, ship->point_num);
         SDL_RenderPresent(renderer);
     }
 
