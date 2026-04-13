@@ -12,7 +12,6 @@ typedef struct {
     float points[MAX_ASTEROID_POINTS];
     int point_num; //taille effective
     int width; //taille collision
-    int index; //index dans l'array
 } asteroid;
 
 typedef struct{
@@ -22,7 +21,7 @@ typedef struct{
 
 asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, int point_num, int width);
 
-asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y, int index);
+asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y);
 
 void move_asteroid(asteroid *asteroid);
 

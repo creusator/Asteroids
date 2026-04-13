@@ -102,14 +102,14 @@ int main(void)
             random_x = rand()%WINDOW_WIDTH;
             random_vx = (((rand()%10)-5)*0.05);
             random_vy = ((rand()%10)*0.05)+0.5;
-            asteroids.asteroids[asteroids.asteroid_num]=create_random_asteroid(random_x, 0.0, random_vx, random_vy, asteroids.asteroid_num);
+            asteroids.asteroids[asteroids.asteroid_num]=create_random_asteroid(random_x, 0.0, random_vx, random_vy);
             asteroids.asteroid_num++;
         }
         new_asteroid_tick += 1;
 
         if (input.key_shoot && projectile_tick >= 30) {
             projectile_tick = 0;
-            projectiles.projectiles[projectiles.num_projectiles] = create_projectile(ship, PROJECTILE_SPEED, PROJECTILE_DAMAGE, projectiles.num_projectiles);
+            projectiles.projectiles[projectiles.num_projectiles] = create_projectile(ship, PROJECTILE_SPEED, PROJECTILE_DAMAGE);
             projectiles.num_projectiles++;
         }
         projectile_tick += 1;

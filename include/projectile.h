@@ -10,7 +10,6 @@ typedef struct {
     float coord_y;
     float speed;
     int damage;
-    int index;
 } projectile;
 
 typedef struct {
@@ -18,7 +17,7 @@ typedef struct {
     int num_projectiles; //taille_effective
 } projectile_array;
 
-projectile create_projectile(spaceship *ship, float speed, int damage, int index);
+projectile create_projectile(spaceship *ship, float speed, int damage);
 
 void update_projectile_array(projectile_array *array);
 

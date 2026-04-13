@@ -21,7 +21,7 @@ asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* poin
     return new_asteroid;
 }
 
-asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y, int index) {
+asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y) {
     int random_int = rand()%3;
     asteroid new_asteroid;
     switch (random_int) {
@@ -33,7 +33,6 @@ asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y, int 
     new_asteroid.coord_y = y;
     new_asteroid.vel_x = vel_x;
     new_asteroid.vel_y = vel_y;
-    new_asteroid.index = index;
     return new_asteroid;
 }
 

@@ -1,12 +1,11 @@
 #include "projectile.h"
 
-projectile create_projectile(spaceship *ship, float speed, int damage, int index){
+projectile create_projectile(spaceship *ship, float speed, int damage){
     projectile proj;
     proj.coord_x = ship->coord_x;
     proj.coord_y = ship->coord_y;
     proj.speed = speed;
     proj.damage = damage;
-    proj.index = index;
     return proj;
 }
 
@@ -32,8 +31,6 @@ void display_projectile_array(projectile_array *array, SDL_Renderer *renderer){
 }
 
 void destroy_projectile(projectile_array *array, int index) {
-    for (int i = index; i < array->num_projectiles - 1; i++) {
-        array->projectiles[i] = array->projectiles[i + 1];
-    }
+    array->projectiles[index] = array->projectiles[array->num_projectiles - 1];
     array->num_projectiles--;
 }
