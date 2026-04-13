@@ -1,7 +1,11 @@
-#include "../include/constants.h"
-#include "../include/renderer.h"
-#include "../include/asteroid.h"
+#include "constants.h"
+#include "renderer.h"
+#include "asteroid.h"
+#include <stdlib.h>
 
+static asteroid asteroid1 = {0.0, 0.0, 0.0, 0.0, {0.0, 12.0, 9.0, 5.0, 7.0, -8.0, -2.0, -11.0, -10.0, -3.0, -7.0, 8.0}, 12, 19};
+static asteroid asteroid2 = {0.0, 0.0, 0.0, 0.0, {2.0, 15.0, 14.0, 8.0, 18.0, 0.0, 11.0, -10.0, -3.0, -13.0, -12.0, -6.0, -16.0, 4.0, -7.0, 12.0}, 16, 30};
+static asteroid asteroid3 = {0.0, 0.0, 0.0, 0.0, {5.0, 25.0, 18.0, 16.0, 26.0, 2.0, 19.0, -14.0, 6.0, -23.0, -11.0, -21.0, -24.0, -9.0, -27.0, 6.0, -19.0, 19.0, -6.0, 24.0}, 20, 40};
 
 asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, int point_num, int width) {
     asteroid new_asteroid;
@@ -11,9 +15,24 @@ asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* poin
     new_asteroid.vel_y = vel_y;
     new_asteroid.point_num = point_num;
     new_asteroid.width = width;
-    for (int i = 0; i < point_num; i++) {
+    for (int i = 0; i < new_asteroid.point_num; i++) {
         new_asteroid.points[i] = points[i];
     }
+    return new_asteroid;
+}
+
+asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y) {
+    int random_int = rand()%3;
+    asteroid new_asteroid;
+    switch (random_int) {
+        case 0: new_asteroid = asteroid1; break;
+        case 1: new_asteroid = asteroid2; break;
+        default: new_asteroid = asteroid3; break;
+    }
+    new_asteroid.coord_x = x;
+    new_asteroid.coord_y = y;
+    new_asteroid.vel_x = vel_x;
+    new_asteroid.vel_y = vel_y;
     return new_asteroid;
 }
 

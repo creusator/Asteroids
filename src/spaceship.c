@@ -1,7 +1,9 @@
-#include "../include/spaceship.h"
-#include "../include/constants.h"
+#include "spaceship.h"
+#include "constants.h"
 #include <SDL3/SDL.h>
 #include <stdlib.h>
+
+static float default_shape[6] = {0.0, -20.0, 20.0, 10.0, -20.0, 10.0};
 
 spaceship* create_spaceship(float x, float y, float* points, int point_num, int width) {
     spaceship *new_ship = malloc(sizeof(spaceship));
@@ -14,6 +16,10 @@ spaceship* create_spaceship(float x, float y, float* points, int point_num, int 
     new_ship->speed = PLAYER_SPEED;
     new_ship->width = width;
     return new_ship;
+}
+
+spaceship* create_default_spaceship(float x, float y, int width) {
+    return create_spaceship(x, y, default_shape, 6, width);
 }
 
 void free_spaceship(spaceship *ship) {

@@ -13,6 +13,8 @@ typedef struct {
 
 spaceship* create_spaceship(float x, float y, float* points, int point_num, int width);
 
+spaceship* create_default_spaceship(float x, float y, int width);
+
 void free_spaceship(spaceship *ship);
 
 void move_spaceship(spaceship *ship, bool key_left, bool key_right, bool key_up, bool key_down);

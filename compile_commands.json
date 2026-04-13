@@ -1,5 +1,37 @@
 [
   {
+    "file": "src/asteroid.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c11",
+      "-g",
+      "-Iinclude",
+      "src/asteroid.c",
+      "-o",
+      "asteroids"
+    ],
+    "directory": "/home/creusator/Documents/GameDev/Asteroids",
+    "output": "asteroids"
+  },
+  {
+    "file": "src/collision.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c11",
+      "-g",
+      "-Iinclude",
+      "src/collision.c",
+      "-o",
+      "asteroids"
+    ],
+    "directory": "/home/creusator/Documents/GameDev/Asteroids",
+    "output": "asteroids"
+  },
+  {
     "file": "src/main.c",
     "arguments": [
       "/usr/bin/gcc",
@@ -7,11 +39,44 @@
       "-Wextra",
       "-std=c11",
       "-g",
+      "-Iinclude",
       "src/main.c",
       "-o",
       "asteroids"
     ],
-    "directory": "/mnt/HDD_Drive/creusator/Documents/GameDev/C_Projects/asteroids",
+    "directory": "/home/creusator/Documents/GameDev/Asteroids",
+    "output": "asteroids"
+  },
+  {
+    "file": "src/renderer.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c11",
+      "-g",
+      "-Iinclude",
+      "src/renderer.c",
+      "-o",
+      "asteroids"
+    ],
+    "directory": "/home/creusator/Documents/GameDev/Asteroids",
+    "output": "asteroids"
+  },
+  {
+    "file": "src/spaceship.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c11",
+      "-g",
+      "-Iinclude",
+      "src/spaceship.c",
+      "-o",
+      "asteroids"
+    ],
+    "directory": "/home/creusator/Documents/GameDev/Asteroids",
     "output": "asteroids"
   }
 ]

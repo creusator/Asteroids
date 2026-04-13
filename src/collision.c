@@ -1,6 +1,6 @@
-#include "../include/collision.h"
-#include "../include/asteroid.h"
-#include "../include/spaceship.h"
+#include "collision.h"
+#include "asteroid.h"
+#include "spaceship.h"
 
 void collide_asteroid(bool *running, asteroid *asteroid, spaceship *spaceship) {
     float dx = asteroid->coord_x - spaceship->coord_x;

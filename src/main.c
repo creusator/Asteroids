@@ -1,19 +1,19 @@
 #include <SDL3/SDL.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <time.h>
 
-#include "../include/constants.h"
-#include "../include/renderer.h"
-#include "../include/asteroid.h"
-#include "../include/spaceship.h"
-#include "../include/collision.h"
-#include "../include/input.h"
-
-float asteroid1[10] = {0.0,20.0,20.0,10.0,10.0,-10.0,-10.0,-10.0,-20.0,10.0};
-float spaceship1[6] = {0.0, -20.0, 20.0, 10.0, -20.0, 10.0};
+#include "constants.h"
+#include "renderer.h"
+#include "asteroid.h"
+#include "spaceship.h"
+#include "collision.h"
+#include "input.h"
 
 int main(void)
 {
+    srand(time(NULL));
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
         fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
         return 1;
@@ -29,9 +29,9 @@ int main(void)
     input_state input = {false, false, false, false};
     asteroid_array asteroids;
     asteroids.asteroid_num = 0;
-    asteroids.asteroids[0] = create_asteroid(WINDOW_WIDTH/2, 0, 0.1, 0.7, asteroid1, 10, 20);
+    asteroids.asteroids[0] = create_random_asteroid(WINDOW_WIDTH/2, 0, 0.1, 0.7);
     asteroids.asteroid_num = 1;
-    spaceship* ship = create_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, spaceship1, 6, 20);
+    spaceship* ship = create_default_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 10);
 
     while (running) {
         // --- Events ---

@@ -2,8 +2,8 @@
 #define ASTEROID_H
 
 #include <SDL3/SDL.h>
+#include "constants.h"
 
-#define MAX_ASTEROIDS 100
 #define MAX_ASTEROID_POINTS 20
 
 typedef struct {
@@ -20,6 +20,8 @@ typedef struct{
 } asteroid_array;
 
 asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, int point_num, int width);
+
+asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y);
 
 void move_asteroid(asteroid *asteroid);
 

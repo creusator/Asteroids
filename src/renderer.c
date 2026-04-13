@@ -1,4 +1,4 @@
-#include "../include/renderer.h"
+#include "renderer.h"
 
 void display_polygon(SDL_Renderer *renderer, float coord_x, float coord_y, float* points, int point_num) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // blanc
