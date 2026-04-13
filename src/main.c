@@ -29,9 +29,12 @@ int main(void)
     input_state input = {false, false, false, false};
     asteroid_array asteroids;
     asteroids.asteroid_num = 0;
-    asteroids.asteroids[0] = create_random_asteroid(WINDOW_WIDTH/2, 0, 0.1, 0.7);
-    asteroids.asteroid_num = 1;
     spaceship* ship = create_default_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 10);
+
+    int new_asteroid_tick = 0;
+    float random_x = 0.0;
+    float random_vx = 0.0;
+    float random_vy = 0.0;
 
     while (running) {
         // --- Events ---
@@ -76,6 +79,16 @@ int main(void)
         move_asteroid_array(&asteroids);
         wrap_asteroid_array(&asteroids);
         collide_asteroid_array(&running, &asteroids, ship);
+
+        if (new_asteroid_tick >= 60 && asteroids.asteroid_num<MAX_ASTEROIDS){
+            new_asteroid_tick = 0;
+            random_x = rand()%WINDOW_WIDTH;
+            random_vx = (((rand()%10)-5)*0.05);
+            random_vy = ((rand()%10)*0.05)+0.5;
+            asteroids.asteroids[asteroids.asteroid_num]=create_random_asteroid(random_x, 0.0, random_vx, random_vy);
+            asteroids.asteroid_num++;
+        }
+        new_asteroid_tick += 1;
 
         // --- Rendu ---
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // noir
