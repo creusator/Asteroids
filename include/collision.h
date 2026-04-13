@@ -4,9 +4,14 @@
 #include <SDL3/SDL.h>
 #include "asteroid.h"
 #include "spaceship.h"
+#include "projectile.h"
 
 void collide_asteroid(bool *running, asteroid *asteroid, spaceship *spaceship);
 
 void collide_asteroid_array(bool *running, asteroid_array *array, spaceship *spaceship);
+
+void collide_projectile(projectile_array *projectiles, int index, asteroid_array *asteroid_array, int asteroid_index);
+
+void collide_projectile_array(projectile_array *array, asteroid_array *asteroid_array);
 
 #endif

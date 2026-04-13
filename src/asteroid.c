@@ -21,7 +21,7 @@ asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* poin
     return new_asteroid;
 }
 
-asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y) {
+asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y, int index) {
     int random_int = rand()%3;
     asteroid new_asteroid;
     switch (random_int) {
@@ -33,6 +33,7 @@ asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y) {
     new_asteroid.coord_y = y;
     new_asteroid.vel_x = vel_x;
     new_asteroid.vel_y = vel_y;
+    new_asteroid.index = index;
     return new_asteroid;
 }
 
@@ -64,6 +65,11 @@ void wrap_asteroid_array(asteroid_array *array) {
     for (int i = 0; i < array->asteroid_num; i++) {
         wrap_asteroid(&array->asteroids[i]);
     }
+}
+
+void destroy_asteroid(asteroid_array *array, int index) {
+    array->asteroids[index] = array->asteroids[array->asteroid_num - 1];
+    array->asteroid_num--;
 }
 
 void display_asteroid_array(SDL_Renderer *renderer, asteroid_array *array) {

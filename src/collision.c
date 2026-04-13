@@ -1,6 +1,4 @@
 #include "collision.h"
-#include "asteroid.h"
-#include "spaceship.h"
 
 void collide_asteroid(bool *running, asteroid *asteroid, spaceship *spaceship) {
     float dx = asteroid->coord_x - spaceship->coord_x;
@@ -14,5 +12,23 @@ void collide_asteroid(bool *running, asteroid *asteroid, spaceship *spaceship) {
 void collide_asteroid_array(bool *running, asteroid_array *array, spaceship *spaceship) {
     for (int i = 0; i < array->asteroid_num; i++) {
         collide_asteroid(running, &array->asteroids[i], spaceship);
+    }
+}
+
+void collide_projectile(projectile_array *projectiles, int proj_index, asteroid_array *asteroid_array, int asteroid_index) {
+    float dx = projectiles->projectiles[proj_index].coord_x - asteroid_array->asteroids[asteroid_index].coord_x;
+    float dy = projectiles->projectiles[proj_index].coord_y - asteroid_array->asteroids[asteroid_index].coord_y;
+    float r = asteroid_array->asteroids[asteroid_index].width;
+    if (dx*dx + dy*dy < r * r) {
+        destroy_projectile(projectiles, proj_index);
+        destroy_asteroid(asteroid_array, asteroid_index);
+    }
+}
+
+void collide_projectile_array(projectile_array *array, asteroid_array *asteroid_array) {
+    for (int i = 0; i < array->num_projectiles; i++) {
+        for (int j = 0; j < asteroid_array->asteroid_num; j++) {
+            collide_projectile(array, i, asteroid_array, j);
+        }
     }
 }

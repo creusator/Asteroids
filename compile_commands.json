@@ -48,6 +48,22 @@
     "output": "asteroids"
   },
   {
+    "file": "src/projectile.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c11",
+      "-g",
+      "-Iinclude",
+      "src/projectile.c",
+      "-o",
+      "asteroids"
+    ],
+    "directory": "/home/creusator/Documents/GameDev/Asteroids",
+    "output": "asteroids"
+  },
+  {
     "file": "src/renderer.c",
     "arguments": [
       "/usr/bin/gcc",
