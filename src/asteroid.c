@@ -47,7 +47,7 @@ void move_asteroid_array(asteroid_array *array) {
     }
 }
 
-void wrap_asteroid(asteroid *asteroid) {
+void wrap_asteroid(asteroid *asteroid) {// a refaire avec la width pour éviter les débordement sur l'ui
     if (asteroid->coord_x < 0){
         asteroid->coord_x += WINDOW_WIDTH;
     } else if (asteroid->coord_x > WINDOW_WIDTH) {
@@ -55,8 +55,8 @@ void wrap_asteroid(asteroid *asteroid) {
     }
     if (asteroid->coord_y < 0){
         asteroid->coord_y += WINDOW_HEIGHT;
-    } else if (asteroid->coord_y > WINDOW_HEIGHT) {
-        asteroid->coord_y -= WINDOW_HEIGHT;
+    } else if (asteroid->coord_y > WINDOW_HEIGHT-150) {
+        asteroid->coord_y = 0.0;
     }
 }
 

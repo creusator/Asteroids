@@ -1,18 +1,19 @@
 #include "collision.h"
 #include <stdbool.h>
 
-void collide_asteroid(bool *running, asteroid *asteroid, spaceship *spaceship) {
+void collide_asteroid(asteroid *asteroid, spaceship *spaceship) {
     float dx = asteroid->coord_x - spaceship->coord_x;
     float dy = asteroid->coord_y - spaceship->coord_y;
     float r = asteroid->width + spaceship->width;
-    if (dx*dx + dy*dy < r * r) {
-        *running = false;
+    if (dx*dx + dy*dy < r * r && spaceship->invincibility_frames == 0) {
+        spaceship->health -= 1;
+        spaceship->invincibility_frames = 90;
     }
 }
 
-void collide_asteroid_array(bool *running, asteroid_array *array, spaceship *spaceship) {
+void collide_asteroid_array(asteroid_array *array, spaceship *spaceship) {
     for (int i = 0; i < array->asteroid_num; i++) {
-        collide_asteroid(running, &array->asteroids[i], spaceship);
+        collide_asteroid(&array->asteroids[i], spaceship);
     }
 }
 
@@ -28,14 +29,12 @@ bool collide_projectile(projectile_array *projectiles, int proj_index, asteroid_
     return false;
 }
 
-void collide_projectile_array(projectile_array *array, asteroid_array *asteroid_array) {
+void collide_projectile_array(projectile_array *array, asteroid_array *asteroid_array, int *score) {
     for (int i = 0; i < array->num_projectiles; i++) {
-        bool hit = false;
         for (int j = 0; j < asteroid_array->asteroid_num; j++) {
             if (collide_projectile(array, i, asteroid_array, j)) {
-                hit = true;
+                *score += 1;
                 i--;
-                break;
             }
         }
     }

@@ -3,7 +3,7 @@
 projectile create_projectile(spaceship *ship, float speed, int damage){
     projectile proj;
     proj.coord_x = ship->coord_x;
-    proj.coord_y = ship->coord_y;
+    proj.coord_y = ship->coord_y-30;
     proj.speed = speed;
     proj.damage = damage;
     return proj;

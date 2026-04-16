@@ -1,5 +1,8 @@
+#define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
-#include <stdio.h>
+#include <SDL3/SDL_main.h>
+#include <SDL3_ttf/SDL_ttf.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
@@ -11,121 +14,192 @@
 #include "projectile.h"
 #include "collision.h"
 #include "input.h"
+#include "user_interface.h"
 
-int main(void)
-{
-    srand(time(NULL));
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
-        fprintf(stderr, "SDL_Init error: %s\n", SDL_GetError());
-        return 1;
-    }
+typedef struct {
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    TTF_TextEngine *engine;
+    TTF_Font *font;
+    TTF_Text *score_label;
+    TTF_Text *score_value;
+    TTF_Text *health_label;
+    TTF_Text *health_value;
 
-    SDL_Window *window = SDL_CreateWindow(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
-    SDL_SetRenderVSync(renderer, 1);
+    spaceship* ship;
 
-    bool running = true;
-    SDL_Event event;
-
-    spaceship* ship = create_default_spaceship(WINDOW_WIDTH/2, WINDOW_HEIGHT/2, 10);
-
-    //Asteroid variables
     asteroid_array asteroids;
-    asteroids.asteroid_num = 0;
-    int new_asteroid_tick = 0;
-    float random_x = 0.0;
-    float random_vx = 0.0;
-    float random_vy = 0.0;
+    int new_asteroid_tick;
 
-    //Input variables
-    input_state input = {false, false, false, false, false};
-
-    //Projectile variables
-    int projectile_tick = 30;
+    int projectile_tick;
     projectile_array projectiles;
-    projectiles.num_projectiles = 0;
 
-    while (running) {
-        // --- Events ---
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT){
-                running = false;
-            }
-            if (event.type == SDL_EVENT_KEY_DOWN) {
-                if (event.key.key == SDLK_ESCAPE)
-                    running = false;
-                if (event.key.key == SDLK_Q){
-                    input.key_left = true;
-                }
-                if (event.key.key == SDLK_D){
-                    input.key_right = true;
-                }
-                if (event.key.key == SDLK_Z){
-                    input.key_up = true;
-                }
-                if (event.key.key == SDLK_S){
-                    input.key_down = true;
-                }
-                if (event.key.key == SDLK_SPACE){
-                    input.key_shoot = true;
-                }
-            }
-            if (event.type == SDL_EVENT_KEY_UP) {
-                if (event.key.key == SDLK_Q){
-                    input.key_left = false;
-                }
-                if (event.key.key == SDLK_D){
-                    input.key_right = false;
-                }
-                if (event.key.key == SDLK_Z){
-                    input.key_up = false;
-                }
-                if (event.key.key == SDLK_S){
-                    input.key_down = false;
-                }
-                if (event.key.key == SDLK_SPACE){
-                    input.key_shoot = false;
-                }
-            }
-        }
+    input_state input;
 
-        // --- Update ---
-        move_spaceship(ship, input.key_left, input.key_right, input.key_up, input.key_down);
-        move_asteroid_array(&asteroids);
-        update_projectile_array(&projectiles);
-        wrap_asteroid_array(&asteroids);
-        collide_asteroid_array(&running, &asteroids, ship);
-        collide_projectile_array(&projectiles, &asteroids);
+    int score;
+} app_state;
 
-        if (new_asteroid_tick >= 60 && asteroids.asteroid_num<MAX_ASTEROIDS){
-            new_asteroid_tick = 0;
-            random_x = rand()%WINDOW_WIDTH;
-            random_vx = (((rand()%10)-5)*0.05);
-            random_vy = ((rand()%10)*0.05)+0.5;
-            asteroids.asteroids[asteroids.asteroid_num]=create_random_asteroid(random_x, 0.0, random_vx, random_vy);
-            asteroids.asteroid_num++;
-        }
-        new_asteroid_tick += 1;
 
-        if (input.key_shoot && projectile_tick >= 30) {
-            projectile_tick = 0;
-            projectiles.projectiles[projectiles.num_projectiles] = create_projectile(ship, PROJECTILE_SPEED, PROJECTILE_DAMAGE);
-            projectiles.num_projectiles++;
-        }
-        projectile_tick += 1;
+/* This function runs once at startup. */
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]){
+    app_state *state = calloc(1, sizeof(app_state));
+    *appstate = state;
+    state->projectile_tick = 30; // déjà chargé pour tirer dès le début
+    (void)argc;
+    (void)argv;
 
-        // --- Rendu ---
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); // noir
-        SDL_RenderClear(renderer);
-        display_asteroid_array(renderer, &asteroids);
-        display_projectile_array(&projectiles, renderer);
-        display_polygon(renderer, ship->coord_x, ship->coord_y, ship->points, ship->point_num);
-        SDL_RenderPresent(renderer);
+    /* Create the window */
+    if (!SDL_CreateWindowAndRenderer(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, 0, &state->window, &state->renderer)) {
+        SDL_Log("Couldn't create window and renderer: %s\n", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+    SDL_SetRenderVSync(state->renderer, 1);
+
+    if (!TTF_Init()) {
+        SDL_Log("Couldn't initialize SDL_ttf: %s\n", SDL_GetError());
+        return SDL_APP_FAILURE;
     }
 
-    free_spaceship(ship);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    /* Load the font */
+    state->font = TTF_OpenFont("fonts/SpaceGrotesk-Medium.ttf", 24);
+    if (!state->font) {
+        SDL_Log("Couldn't open font: %s\n", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
+    /* Create the text engine */
+    state->engine = TTF_CreateRendererTextEngine(state->renderer);
+    if (!state->engine) {
+        SDL_Log("Couldn't create text engine: %s\n", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
+    /* Create the texts */
+    state->score_label = TTF_CreateText(state->engine, state->font, "Score: ", 0);
+    TTF_SetTextColor(state->score_label, 255, 255, 255, 255); // White
+    state->score_value = TTF_CreateText(state->engine, state->font, "0", 0);
+    TTF_SetTextColor(state->score_value, 255, 255, 255, 255); // White
+    state->health_label = TTF_CreateText(state->engine, state->font, "Health: ", 0);
+    TTF_SetTextColor(state->health_label, 255, 255, 255, 255); // White
+    state->health_value = TTF_CreateText(state->engine, state->font, "0", 0);
+    TTF_SetTextColor(state->health_value, 255, 255, 255, 255); // White
+
+    state->ship = create_default_spaceship(WINDOW_WIDTH/2.0, WINDOW_HEIGHT/2.0, 10);
+    srand(time(NULL));
+    state->asteroids.asteroid_num = 0;
+    state->projectiles.num_projectiles = 0;
+
+    return SDL_APP_CONTINUE;
+}
+
+/* This function runs when a new event (mouse input, keypresses, etc) occurs. */
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event){
+    app_state *state = (app_state *)appstate;
+
+    if (event->type == SDL_EVENT_QUIT){
+        return SDL_APP_SUCCESS;
+    }
+    if (event->type == SDL_EVENT_KEY_DOWN) {
+        if (event->key.key == SDLK_ESCAPE)
+            return SDL_APP_SUCCESS;
+        if (event->key.key == SDLK_Q){
+            state->input.key_left = true;
+        }
+        if (event->key.key == SDLK_D){
+            state->input.key_right = true;
+        }
+        if (event->key.key == SDLK_Z){
+            state->input.key_up = true;
+        }
+        if (event->key.key == SDLK_S){
+            state->input.key_down = true;
+        }
+        if (event->key.key == SDLK_SPACE){
+            state->input.key_shoot = true;
+        }
+    }
+    if (event->type == SDL_EVENT_KEY_UP) {
+        if (event->key.key == SDLK_Q){
+            state->input.key_left = false;
+        }
+        if (event->key.key == SDLK_D){
+            state->input.key_right = false;
+        }
+        if (event->key.key == SDLK_Z){
+            state->input.key_up = false;
+        }
+        if (event->key.key == SDLK_S){
+            state->input.key_down = false;
+        }
+        if (event->key.key == SDLK_SPACE){
+            state->input.key_shoot = false;
+        }
+    }
+    return SDL_APP_CONTINUE;
+}
+
+/* This function runs once per frame, and is the heart of the program. */
+SDL_AppResult SDL_AppIterate(void *appstate) {
+    app_state *state = (app_state *)appstate;
+
+    update_spaceship(state->ship, state->input.key_left, state->input.key_right, state->input.key_up, state->input.key_down);
+    if (state->ship->health <= 0) {
+        return SDL_APP_SUCCESS;
+    }
+    move_asteroid_array(&state->asteroids);
+    update_projectile_array(&state->projectiles);
+    wrap_asteroid_array(&state->asteroids);
+    collide_asteroid_array(&state->asteroids, state->ship);
+    collide_projectile_array(&state->projectiles, &state->asteroids, &state->score);
+
+    if (state->new_asteroid_tick >= 60 && state->asteroids.asteroid_num<MAX_ASTEROIDS){
+        state->new_asteroid_tick = 0;
+        float rx = rand() % WINDOW_WIDTH;
+        float rvx = (((rand()%10)-5)*0.05);
+        float rvy = ((rand()%10)*0.05)+0.5;
+        state->asteroids.asteroids[state->asteroids.asteroid_num]=create_random_asteroid(rx, 0.0, rvx, rvy);
+        state->asteroids.asteroid_num++;
+    }
+    state->new_asteroid_tick += 1;
+
+    if (state->input.key_shoot && state->projectile_tick >= 30) {
+        state->projectile_tick = 0;
+        state->projectiles.projectiles[state->projectiles.num_projectiles] = create_projectile(state->ship, PROJECTILE_SPEED, PROJECTILE_DAMAGE);
+        state->projectiles.num_projectiles++;
+    }
+    state->projectile_tick += 1;
+
+    // --- Rendu ---
+    SDL_SetRenderDrawColor(state->renderer, 0, 0, 0, 255); // noir
+    SDL_RenderClear(state->renderer);
+    display_asteroid_array(state->renderer, &state->asteroids);
+    display_projectile_array(&state->projectiles, state->renderer);
+    if (state->ship->invincibility_frames % 10 < 5){
+        display_polygon(state->renderer, state->ship->coord_x, state->ship->coord_y, state->ship->points, state->ship->point_num);
+    }
+    update_ui(state->renderer, state->ship, state->score, state->score_value, state->health_value);
+
+    /* Draw the text */
+    TTF_DrawRendererText(state->score_label, WINDOW_WIDTH/10.0, WINDOW_HEIGHT - WINDOW_HEIGHT/10.0);
+    TTF_DrawRendererText(state->score_value, WINDOW_WIDTH/4.0, WINDOW_HEIGHT - WINDOW_HEIGHT/10.0);
+    TTF_DrawRendererText(state->health_label, WINDOW_WIDTH - 200.0f, WINDOW_HEIGHT - WINDOW_HEIGHT/10.0);
+    TTF_DrawRendererText(state->health_value, WINDOW_WIDTH - 100.0f, WINDOW_HEIGHT - WINDOW_HEIGHT/10.0);
+
+    SDL_RenderPresent(state->renderer);
+    return SDL_APP_CONTINUE;
+}
+
+/* This function runs once at shutdown. */
+void SDL_AppQuit(void *appstate, SDL_AppResult result) {
+    app_state *state = (app_state *)appstate;
+    (void)result;
+    free_spaceship(state->ship);
+    SDL_DestroyRenderer(state->renderer);
+    SDL_DestroyWindow(state->window);
+    if (state->font) {
+        TTF_CloseFont(state->font);
+    }
+    free(state);
+    TTF_Quit();
     SDL_Quit();
-    return 0;
 }

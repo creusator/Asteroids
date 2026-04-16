@@ -9,14 +9,16 @@ typedef struct {
     int point_num;
     int speed;
     int width; //taille collision
+    int health;
+    int invincibility_frames;
 } spaceship;
 
-spaceship* create_spaceship(float x, float y, float* points, int point_num, int width);
+spaceship* create_spaceship(float x, float y, float* points, int point_num, int width, int health);
 
 spaceship* create_default_spaceship(float x, float y, int width);
 
-void free_spaceship(spaceship *ship);
+void update_spaceship(spaceship *ship, bool key_left, bool key_right, bool key_up, bool key_down);
 
-void move_spaceship(spaceship *ship, bool key_left, bool key_right, bool key_up, bool key_down);
+void free_spaceship(spaceship *ship);
 
 #endif

@@ -94,5 +94,21 @@
     ],
     "directory": "/home/creusator/Documents/GameDev/Asteroids",
     "output": "asteroids"
+  },
+  {
+    "file": "src/user_interface.c",
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-std=c11",
+      "-g",
+      "-Iinclude",
+      "src/user_interface.c",
+      "-o",
+      "asteroids"
+    ],
+    "directory": "/home/creusator/Documents/GameDev/Asteroids",
+    "output": "asteroids"
   }
 ]
