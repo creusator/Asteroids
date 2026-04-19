@@ -1,4 +1,5 @@
 #include "collision.h"
+#include <SDL3/SDL_gamepad.h>
 #include <stdbool.h>
 
 void collide_asteroid(asteroid *asteroid, spaceship *spaceship) {
@@ -35,6 +36,7 @@ void collide_projectile_array(projectile_array *array, asteroid_array *asteroid_
             if (collide_projectile(array, i, asteroid_array, j)) {
                 *score += 1;
                 i--;
+                break;
             }
         }
     }

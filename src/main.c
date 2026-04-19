@@ -1,3 +1,4 @@
+#include <SDL3/SDL_stdinc.h>
 #define SDL_MAIN_USE_CALLBACKS 1
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -29,7 +30,9 @@ typedef struct {
     spaceship* ship;
 
     asteroid_array asteroids;
-    int new_asteroid_tick;
+    int asteroid_tick;
+    float required_asteroid_tick;
+    float min_asteroid_tick;
 
     int projectile_tick;
     projectile_array projectiles;
@@ -37,6 +40,9 @@ typedef struct {
     input_state input;
 
     int score;
+
+    Uint64 last_tick;
+    float elapsed_time;
 } app_state;
 
 
@@ -44,7 +50,12 @@ typedef struct {
 SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[]){
     app_state *state = calloc(1, sizeof(app_state));
     *appstate = state;
+    state->last_tick = SDL_GetTicks();
+    state->elapsed_time = 0.0f;
     state->projectile_tick = 30; // déjà chargé pour tirer dès le début
+    state->asteroid_tick = 1;
+    state->required_asteroid_tick = 60.0f;
+    state->min_asteroid_tick = 20.0f;
     (void)argc;
     (void)argv;
 
@@ -142,6 +153,11 @@ SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event){
 SDL_AppResult SDL_AppIterate(void *appstate) {
     app_state *state = (app_state *)appstate;
 
+    Uint64 now = SDL_GetTicks();
+    float dt = (now - state->last_tick) / 1000.0f;
+    state->last_tick = now;
+    state->elapsed_time += dt;
+
     update_spaceship(state->ship, state->input.key_left, state->input.key_right, state->input.key_up, state->input.key_down);
     if (state->ship->health <= 0) {
         return SDL_APP_SUCCESS;
@@ -152,16 +168,24 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
     collide_asteroid_array(&state->asteroids, state->ship);
     collide_projectile_array(&state->projectiles, &state->asteroids, &state->score);
 
-    if (state->new_asteroid_tick >= 60 && state->asteroids.asteroid_num<MAX_ASTEROIDS){
-        state->new_asteroid_tick = 0;
-        float rx = rand() % WINDOW_WIDTH;
-        float rvx = (((rand()%10)-5)*0.05);
-        float rvy = ((rand()%10)*0.05)+0.5;
-        state->asteroids.asteroids[state->asteroids.asteroid_num]=create_random_asteroid(rx, 0.0, rvx, rvy);
-        state->asteroids.asteroid_num++;
+    if (state->asteroid_tick >= state->required_asteroid_tick) {
+        state->asteroid_tick = 1;
+        if (state->asteroids.asteroid_num < MAX_ASTEROIDS) {
+            float rx = rand() % WINDOW_WIDTH;
+            float rvx = (((rand()%10)-5)*0.05);
+            float rvy = ((rand()%10)*0.05)+0.5;
+            state->asteroids.asteroids[state->asteroids.asteroid_num] = create_random_asteroid(rx, 0.0, rvx, rvy);
+            state->asteroids.asteroid_num++;
+        }
     }
-    state->new_asteroid_tick += 1;
-
+    state->asteroid_tick += 1;
+    if (state->elapsed_time >= 15.0f) {
+        state->elapsed_time = 0.0f;
+        state->required_asteroid_tick *= 0.7f;
+        if (state->required_asteroid_tick < state->min_asteroid_tick) {
+            state->required_asteroid_tick = state->min_asteroid_tick;
+        }
+    }
     if (state->input.key_shoot && state->projectile_tick >= 30) {
         state->projectile_tick = 0;
         state->projectiles.projectiles[state->projectiles.num_projectiles] = create_projectile(state->ship, PROJECTILE_SPEED, PROJECTILE_DAMAGE);

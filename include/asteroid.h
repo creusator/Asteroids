@@ -6,12 +6,19 @@
 
 #define MAX_ASTEROID_POINTS 20
 
+typedef enum {
+    ASTEROID_LARGE,
+    ASTEROID_MEDIUM,
+    ASTEROID_SMALL
+} asteroid_size;
+
 typedef struct {
     float coord_x, coord_y;
     float vel_x, vel_y;
     float points[MAX_ASTEROID_POINTS];
     int point_num; //taille effective
     int width; //taille collision
+    asteroid_size size;
 } asteroid;
 
 typedef struct{
@@ -19,7 +26,7 @@ typedef struct{
     int asteroid_num; //taille effective
 } asteroid_array;
 
-asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, int point_num, int width);
+asteroid create_asteroid(float x, float y, float vel_x, float vel_y, float* points, asteroid_size size);
 
 asteroid create_random_asteroid(float x, float y, float vel_x, float vel_y);
 
